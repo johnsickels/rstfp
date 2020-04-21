@@ -81,6 +81,7 @@ typings/
 
 # Optional npm cache directory
 .npm
+/tests/cache/
 
 # Optional eslint cache
 .eslintcache
@@ -138,5 +139,6 @@ temp/
 
 # End of https://www.gitignore.io/api/node,macos
 
-# Flagpole transpilation
-/tests/out/*
+# Transpilation
+/tests/out/
+/dist/

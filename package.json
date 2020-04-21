@@ -4,12 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "flagpole build && flagpole run",
+    "generate": "tsc && node ./dist/script.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^13.13.1",
     "flagpole": "^2.1.19"
   }
 }

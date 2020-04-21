@@ -1,9 +1,14 @@
-const path = require("path");
-const fs = require("fs");
-// const env = require("./env");
+import * as path from "path";
+import * as fs from "fs";
+import {
+  templateLiteralize,
+  envVariablize,
+  commentize,
+  camelize,
+} from "./utils/izers";
 
 // Find Runscope imports
-const directoryPath = path.join(__dirname, "imports");
+const directoryPath = path.join(__dirname, "../imports");
 fs.readdir(directoryPath, (err, files) => {
   // ignore hidden files (.DS_Store)
   files = files.filter((file) => !/(^|\/)\.[^\/\.]/g.test(file));
@@ -19,60 +24,10 @@ fs.readdir(directoryPath, (err, files) => {
 // Main function
 function generateFlagpoleSuite(runscopeJSON) {
   const rawdata = fs.readFileSync(`./imports/${runscopeJSON}`);
-  // console.log(rawdata);
-  const data = JSON.parse(rawdata);
-  // console.log(data.name);
-
-  // Change {{variable}} to ${variable}
-  function templateLiteralize(variable) {
-    if (typeof variable === "string") {
-      return variable
-        .replace("{{staging-url}}", "")
-        .replace(/{{/g, "${env.")
-        .replace(/}}/g, "}")
-        .replace(/"/g, "`");
-    }
-    return variable;
-  }
-
-  function envVariablize(str) {
-    // remove quotes
-    // console.log(str);
-    if (!str.includes("{{")) return `"${str}"`;
-
-    str = str
-      .replace(/"{{/g, "env.")
-      .replace(/}}"/g, "")
-      .replace(/{{/g, "env.")
-      .replace(/}}/g, "");
-    // variablize {{}}
-    // console.log(str);
-    return str;
-  }
-
-  // Change "\n" to "\n //""
-  function commentify(str) {
-    return str.replace(/\n/g, "\n\t\t //");
-  }
-
-  // Change "Standard GET Request to /events/eventId - limit testing" to "standardGetRequestToEventsEventid"
-  function toCamelCase(note) {
-    // console.log(note);
-    const camel = note
-      .trim() //might need polyfill if you need to support older browsers
-      .toLowerCase() //lower case everything
-      .replace(
-        /([^A-Z0-9]+)(.)/gi, //match multiple non-letter/numbers followed by any character
-        function (match) {
-          return arguments[2].toUpperCase(); //3rd index is the character we need to transform uppercase
-        }
-      );
-    // console.log(camel);
-    return camel;
-  }
+  const data = JSON.parse(rawdata.toString());
 
   // Loop through the each steps the imported object
-  for (i = 0; i < data.steps.length; i++) {
+  for (let i = 0; i < data.steps.length; i++) {
     const step = data.steps[i];
 
     // boilerplate
@@ -85,7 +40,6 @@ function generateFlagpoleSuite(runscopeJSON) {
     // auth
     if (step.headers && step.headers.hasOwnProperty("Authorization")) {
       const token = envVariablize(step.headers.Authorization[0].split(" ")[1]);
-      // console.log(token);
       fileBody += `.setBearerToken(${token})\n\t`;
     }
 
@@ -97,6 +51,7 @@ function generateFlagpoleSuite(runscopeJSON) {
 
       fileBody += `.setJsonBody(${jsonBody})\n\t`;
     }
+
     // open
     if (step.url) {
       step.url = templateLiteralize(step.url);
@@ -172,47 +127,29 @@ function generateFlagpoleSuite(runscopeJSON) {
     if (step.scripts && step.scripts.length) {
       fileBody += "\n\t\t// TO DO:\n\t\t";
       step.scripts.forEach((script) => {
-        fileBody += `// ${commentify(script)}\n`;
+        fileBody += `// ${commentize(script)}\n`;
       });
     }
 
     fileBody += "\n\t})";
 
-    // Make directory with node
-    // const parentDir = "./tests/src/";
-    // const dir = parentDir + toCamelCase(data.name);
-    // const fileName = step.note ? toCamelCase(step.note) : `noName${i}`;
-    // // console.log(dir);
-    // if (!fs.existsSync(dir)) {
-    //   // console.log("Making dir...");
-    //   fs.mkdirSync(dir);
-    // }
-
-    // // Add dir name to fileName
-    // let fileNameWithDir = `${dir}/${fileName}`;
-    // // fileNameWithDir += step.note ? toCamelCase(step.note) : `noName${i}`;
-    // // console.log(`Making file name: ${fileName}`);
-    // const fileNameExtension = `${fileNameWithDir}.ts`;
-
-    const note = step.note ? toCamelCase(step.note) : `noName${i}`;
-    const runscopeName = toCamelCase(data.name);
+    const note = step.note ? camelize(step.note) : `noName${i}`;
+    const runscopeName = camelize(data.name);
     const flagpoleSuiteName = `${runscopeName}/${note}`;
     const parentDir = "./tests/src/";
     const dir = `${parentDir + runscopeName}/`;
     const fileName = `${parentDir + flagpoleSuiteName}.ts`;
 
     if (!fs.existsSync(dir)) {
-      // console.log("Making dir...");
       fs.mkdirSync(dir);
     }
 
     // Export new flagpole suite
-    // console.log("Writing file...");
     fs.writeFileSync(fileName, fileBody);
 
-    // write it to flagpole.json
+    // Write it to flagpole.json
     const flagpoleConfig = fs.readFileSync(`./flagpole.json`);
-    const flagpoleConfigObject = JSON.parse(flagpoleConfig);
+    const flagpoleConfigObject = JSON.parse(flagpoleConfig.toString());
 
     flagpoleConfigObject.suites[flagpoleSuiteName] = {
       id: "",
