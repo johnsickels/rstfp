@@ -1,0 +1,828 @@
+{
+  "trigger_url": "https://api.runscope.com/radar/3fbd4fc7-0edd-44ee-8d2d-282e6e6309f6/trigger", 
+  "name": "Main Test Suite Basic - Admin", 
+  "version": "1.0", 
+  "exported_at": 1587500542, 
+  "steps": [
+    {
+      "body": " {\r\n    \"email\":\"{{email}}\",\r\n    \"password\":\"{{password}}\"\r\n}", 
+      "skipped": false, 
+      "form": {}, 
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ]
+      }, 
+      "url": "https://staging-api.flosports.tv/api/tokens", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "token", 
+          "name": "tokenVal"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "Login & Authentication step", 
+      "fragment": "", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "contains", 
+          "property": "", 
+          "value": "token", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [
+        "var tokenSchema = {\n  title: 'dataSchema',\n  type: 'object',\n  required: ['id', 'userId', 'userAgent', 'ip', 'streamId'],\n  properties: {\n    id: {\n      type: 'string'\n    },\n    userId: {\n      type: 'number'\n    },\n    userAgent: {\n      type: 'string'\n    },\n    ip: {\n        type: 'string'\n    },\n    streamId: {\n        type: 'number'\n    }\n  }\n};\n\nchai.tv4.addSchema('dataSchema', tokenSchema);\nvar schema = chai.tv4.getSchema('dataSchema');\nvariables.set(\"tSchema\", schema);"
+      ], 
+      "before_scripts": [], 
+      "method": "POST"
+    }, 
+    {
+      "skipped": false, 
+      "headers": {
+        "Authorization": [
+          "Bearer {{tokenVal}}"
+        ], 
+        "Cache-Control": [
+          "max-age=0;"
+        ]
+      }, 
+      "url": "{{staging-url}}/auth", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "data.userId", 
+          "name": "userId"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "Verify Authentication", 
+      "fragment": "", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/info", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "Info Endpoint of Current build", 
+      "headers": {
+        "Authorization": [
+          "Bearer {{tokenVal}}"
+        ]
+      }, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "data", 
+          "value": null, 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "headers": {}, 
+      "url": "{{staging-url}}/events?limit={{maxLimit}}&sort=-id", 
+      "variables": [
+        {
+          "source": "response_json", 
+          "property": "data[0].id", 
+          "name": "eventId"
+        }
+      ], 
+      "args": {}, 
+      "step_type": "request", 
+      "auth": {}, 
+      "multipart_form": [], 
+      "note": "GET /events - limit testing.", 
+      "fragment": "", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "contains", 
+          "property": "", 
+          "value": "data", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [
+        "var json = JSON.parse(response.body);\nvar counter = 0;\nwhile (counter < json.data.length) \n{\n    assert.isNumber(json.data[counter].id, 'id');\n    counter += 1;\n}\nassert.equal(counter, variables.get(\"maxLimit\"), '== number of events called');"
+      ], 
+      "before_scripts": [], 
+      "data": "", 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "headers": {}, 
+      "url": "{{staging-url}}/events?limit={{minLimit}}&fields=id,name&sort=-id", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "GET /events - fields param test", 
+      "fragment": "", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "data[0].id", 
+          "value": "{{eventId}}", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [
+        "var json = JSON.parse(response.body);\nvar counter = 0;\nwhile (counter < json.data.length) \n{\n    assert.isNumber(json.data[counter].id, 'id');\n    assert.isString(json.data[counter].name, 'name');\n    \n    counter += 1;\n}\nassert.equal(counter, variables.get(\"minLimit\"), '== number of events called');"
+      ], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/events?offset={{listOffset}}&limit=6", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "GET /events - Offset & Limit test", 
+      "headers": {}, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_equal", 
+          "property": "data[0].id", 
+          "value": "{{eventId}}", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/events/{{eventId}}", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "Change eventId", 
+      "headers": {}, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_equal", 
+          "property": "data.id", 
+          "value": "{{eventId}}", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [
+        "variables.set(\"eventId\", 11708);"
+      ], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/events/{{eventId}}?fields=id,name", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "GET /events - Receive detailed info about a singular event", 
+      "headers": {}, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "is_a_number", 
+          "property": "data.id", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "data.id", 
+          "value": "{{eventId}}", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/events/{{eventId}}/streams?isActive", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "GET /events/eventId/streams - returns a list of streams associated with that eventId", 
+      "headers": {}, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "contains", 
+          "property": "", 
+          "value": "data", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [
+        "var json = JSON.parse(response.body);\nvar counter = 0;\nwhile (counter < json.data.length) \n{\n    assert.isNumber(json.data[counter].id, 'id');\n    assert.equal(json.data[counter].eventId, variables.get(\"eventId\"), 'eventId');\n    counter += 1;\n}\nvariables.set(\"streamId\", json.data[0].id);"
+      ], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "headers": {}, 
+      "url": "{{staging-url}}/streams/{{streamId}}", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "GET /streams/streamId - Returns detailed info about a stream", 
+      "fragment": "", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": 200, 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "is_a_number", 
+          "property": "data.id", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "equal_number", 
+          "property": "data.id", 
+          "value": "{{streamId}}", 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "is_a_number", 
+          "property": "data.eventId", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "data.eventId", 
+          "value": "{{eventId}}", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/events/{{random_int}}", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "GET /events - Negative testing randomized numerical eventIds", 
+      "headers": {}, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "404", 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/events/{{random_string(10)}}", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "GET /events - Negative testing randomized alphanumeric eventIds", 
+      "headers": {}, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "400", 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/tokens?userId={{userId}}", 
+      "variables": [
+        {
+          "source": "response_status", 
+          "name": "tokenCode"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "Should return list of tokens available to the user.", 
+      "headers": {
+        "Authorization": [
+          "Bearer {{tokenVal}}"
+        ], 
+        "Cache-Control": [
+          "max-age=0;"
+        ]
+      }, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "data", 
+          "value": null, 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [
+        "var json = JSON.parse(response.body);\nvar counter = 0;\nwhile (counter < json.data.length) \n{\n    assert.isString(json.data[counter].id, 'id');\n    counter += 1;\n}\nvariables.set(\"numTokens\", counter);\nassert.equal(counter, json.data.length, '== number of tokens possesed.');"
+      ], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "body": "", 
+      "skipped": false, 
+      "form": {}, 
+      "headers": {
+        "Authorization": [
+          "Bearer {{tokenVal}}"
+        ], 
+        "Cache-Control": [
+          "max-age=0;"
+        ]
+      }, 
+      "url": "{{staging-url}}/streams/{{streamId}}/tokens", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "POST /streams/streamId/tokens - Should create a new token for the stream", 
+      "fragment": "", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [
+        "var json = JSON.parse(response.body);\nassert.jsonSchema(json.data.token, variables.get(\"tSchema\"));"
+      ], 
+      "before_scripts": [], 
+      "method": "POST"
+    }, 
+    {
+      "skipped": false, 
+      "headers": {
+        "Authorization": [
+          "Bearer {{tokenVal}}"
+        ], 
+        "Cache-Control": [
+          "max-age=0;"
+        ]
+      }, 
+      "url": "{{staging-url}}/streams/{{streamId}}/stream-targets", 
+      "variables": [
+        {
+          "source": "response_status", 
+          "name": "stResponse"
+        }
+      ], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "Returns Stream targets of Stream", 
+      "fragment": "", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "comparison": "not_equal", 
+      "skipped": false, 
+      "left_value": "{{stResponse}}", 
+      "step_type": "condition", 
+      "steps": [
+        {
+          "body": "", 
+          "skipped": false, 
+          "form": {}, 
+          "url": "{{staging-url}}/streams/provision-stream-targets", 
+          "variables": [], 
+          "multipart_form": [], 
+          "step_type": "request", 
+          "auth": {}, 
+          "id": "9f6b4663-a520-4ffc-87dd-45737edaa777", 
+          "note": "", 
+          "headers": {
+            "User-Agent": [
+              "{{uAgent}}"
+            ], 
+            "Authorization": [
+              "Bearer {{tokenVal}}"
+            ], 
+            "Cache-Control": [
+              "max-age=0;"
+            ]
+          }, 
+          "assertions": [
+            {
+              "comparison": "equal_number", 
+              "value": 200, 
+              "source": "response_status"
+            }
+          ], 
+          "scripts": [], 
+          "before_scripts": [], 
+          "method": "POST"
+        }, 
+        {
+          "body": "", 
+          "skipped": false, 
+          "form": {}, 
+          "url": "{{staging-url}}/streams/{{streamId}}/stream-targets/2", 
+          "variables": [], 
+          "multipart_form": [], 
+          "step_type": "request", 
+          "auth": {}, 
+          "id": "0fb56958-4ad7-4331-a47b-cc2d354cbe26", 
+          "note": "Assign cdnId so token can be generated", 
+          "headers": {
+            "User-Agent": [
+              "{{uAgent}}"
+            ], 
+            "Authorization": [
+              "Bearer {{tokenVal}}"
+            ], 
+            "Cache-Control": [
+              "max-age=0;"
+            ]
+          }, 
+          "assertions": [
+            {
+              "comparison": "equal_number", 
+              "value": "201", 
+              "source": "response_status"
+            }
+          ], 
+          "scripts": [], 
+          "before_scripts": [], 
+          "method": "PUT"
+        }, 
+        {
+          "skipped": false, 
+          "headers": {
+            "User-Agent": [
+              "{{uAgent}}"
+            ], 
+            "Authorization": [
+              "Bearer {{tokenVal}}"
+            ], 
+            "Cache-Control": [
+              "max-age=0;"
+            ]
+          }, 
+          "url": "{{staging-url}}/streams/{{streamId}}/stream-targets", 
+          "variables": [], 
+          "multipart_form": [], 
+          "step_type": "request", 
+          "auth": {}, 
+          "id": "82cd0835-0d7a-4e58-9a3d-f84c778e7cee", 
+          "note": "Verify that the stream-target has been assigned a CDN", 
+          "fragment": "", 
+          "assertions": [
+            {
+              "comparison": "equal_number", 
+              "value": "204", 
+              "source": "response_status"
+            }
+          ], 
+          "scripts": [], 
+          "before_scripts": [], 
+          "method": "GET"
+        }
+      ], 
+      "right_value": "200"
+    }, 
+    {
+      "body": "{\r\n\"ip\":\"111.22.22.22\"\r\n}", 
+      "skipped": false, 
+      "form": {}, 
+      "headers": {
+        "Content-Type": [
+          "application/json"
+        ], 
+        "Authorization": [
+          "Bearer {{tokenVal}}"
+        ], 
+        "Cache-Control": [
+          "max-age=0;"
+        ]
+      }, 
+      "url": "{{staging-url}}/streams/{{streamId}}/tokens", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "note": "Signed IP Specific Token Request", 
+      "fragment": "", 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }, 
+        {
+          "comparison": "not_empty", 
+          "property": "data.token", 
+          "value": null, 
+          "source": "response_json"
+        }, 
+        {
+          "comparison": "equal", 
+          "property": "data.token.ip", 
+          "value": "111.22.22.22", 
+          "source": "response_json"
+        }
+      ], 
+      "scripts": [
+        "var json = JSON.parse(response.body);\nassert.jsonSchema(json.data.token, variables.get(\"tSchema\"));"
+      ], 
+      "before_scripts": [
+        "var requestMethod = request.method.toLowerCase();\nvar requestHost = 'staging-live-api-3.flosports.tv';\nvar requestPath = '/streams/'+ variables.get(\"streamId\") +'/tokens';\nvar queryString = '';\nvar requestBody = request.body;\nvar message = requestMethod + \"\\n\" + requestHost + \"\\n\" + requestPath + \"\\n\" + queryString + \"\\n\" + requestBody;\nvar hmac = CryptoJS.HmacSHA256(message, variables.get('apiSecret'));\nvar signature = hmac.toString(CryptoJS.enc.Hex);\nconsole.log(message);\nconsole.log('signature ', signature);\nrequest.headers[\"Digest\"] = 'SHA-256=' + signature;"
+      ], 
+      "method": "POST"
+    }, 
+    {
+      "skipped": false, 
+      "url": "{{staging-url}}/tokens?userId={{userId}}", 
+      "variables": [], 
+      "multipart_form": [], 
+      "step_type": "request", 
+      "auth": {}, 
+      "fragment": "", 
+      "note": "Should return list of tokens available to the user.", 
+      "headers": {
+        "Authorization": [
+          "Bearer {{tokenVal}}"
+        ], 
+        "Cache-Control": [
+          "max-age=0;"
+        ]
+      }, 
+      "assertions": [
+        {
+          "comparison": "equal_number", 
+          "value": "200", 
+          "source": "response_status"
+        }
+      ], 
+      "scripts": [
+        "var json = JSON.parse(response.body);\nvar counter = 0;\nwhile (counter < json.data.length) \n{\n    assert.isString(json.data[counter].id, 'id');\n    counter += 1;\n}\nvariables.set(\"numTokens\", json.data.length);\nassert.equal(counter, json.data.length, '== number of tokens possesed.');\n\nif(counter > 0)\n    counter -= 1;\n\nif(json.data.length !== 0)\n    variables.set(\"tokenId\", json.data[counter].id);"
+      ], 
+      "before_scripts": [], 
+      "method": "GET"
+    }, 
+    {
+      "comparison": "is_greater_than_or_equal", 
+      "skipped": false, 
+      "left_value": "{{numTokens}}", 
+      "step_type": "condition", 
+      "steps": [
+        {
+          "body": "", 
+          "skipped": false, 
+          "form": {}, 
+          "url": "{{staging-url}}/tokens?userId={{userId}}", 
+          "variables": [
+            {
+              "source": "response_status", 
+              "name": "sCode"
+            }
+          ], 
+          "multipart_form": [], 
+          "step_type": "request", 
+          "auth": {}, 
+          "id": "69c5e4b3-f815-435d-a5d0-ba587632ea65", 
+          "note": "", 
+          "headers": {
+            "Authorization": [
+              "Bearer {{tokenVal}}"
+            ]
+          }, 
+          "assertions": [], 
+          "scripts": [], 
+          "before_scripts": [], 
+          "method": "DELETE"
+        }
+      ], 
+      "right_value": "{{tokenLimit}}"
+    }, 
+    {
+      "comparison": "not_equal", 
+      "skipped": false, 
+      "left_value": "{{sCode}}", 
+      "step_type": "condition", 
+      "steps": [
+        {
+          "body": "", 
+          "skipped": false, 
+          "form": {}, 
+          "url": "{{staging-url}}/tokens/{{tokenId}}", 
+          "variables": [], 
+          "multipart_form": [], 
+          "step_type": "request", 
+          "auth": {}, 
+          "id": "6dcab668-59d1-479e-a279-cbcb304961c3", 
+          "note": "", 
+          "headers": {
+            "Authorization": [
+              "Bearer {{tokenVal}}"
+            ]
+          }, 
+          "assertions": [
+            {
+              "comparison": "equal_number", 
+              "value": "204", 
+              "source": "response_status"
+            }
+          ], 
+          "scripts": [], 
+          "before_scripts": [], 
+          "method": "DELETE"
+        }, 
+        {
+          "skipped": false, 
+          "url": "{{staging-url}}/tokens/{{tokenId}}", 
+          "variables": [], 
+          "multipart_form": [], 
+          "step_type": "request", 
+          "auth": {}, 
+          "id": "3444203b-1d79-4f0e-b0b8-000acee6196b", 
+          "note": "Verifying single token deletion", 
+          "headers": {
+            "Authorization": [
+              "Bearer {{tokenVal}}"
+            ]
+          }, 
+          "assertions": [
+            {
+              "comparison": "equal_number", 
+              "value": "404", 
+              "source": "response_status"
+            }
+          ], 
+          "scripts": [], 
+          "before_scripts": [], 
+          "method": "GET"
+        }
+      ], 
+      "right_value": "204"
+    }
+  ], 
+  "description": "Does not do JSON schema checks."
+}
