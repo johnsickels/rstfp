@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "flagpole build && flagpole run",
-    "generate": "tsc && node ./dist/script.js"
+    "start": "tsc && node ./dist/script.js"
   },
   "keywords": [],
   "author": "",
