@@ -42,3 +42,10 @@ export const camelize = (note) => {
   // console.log(camel);
   return camel;
 };
+
+export const bracketize = (str) => {
+  function cb(acc, string) {
+    return acc + `["${string}"]`;
+  }
+  return str.split(".").reduce(cb, "");
+};
